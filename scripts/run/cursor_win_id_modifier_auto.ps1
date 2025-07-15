@@ -15,10 +15,6 @@ $STORAGE_FILE = "$env:APPDATA\Cursor\User\globalStorage\storage.json"
 $BACKUP_DIR = "$env:APPDATA\Cursor\User\globalStorage\backups"
 
 $Auto = $true
-param(
-    [switch]$Auto = $false
-)
-if ($env:AUTO_RUN -eq "1") { $Auto = $true }
 
 # � 修改Cursor内核JS文件实现设备识别绕过（从macOS版本移植）
 function Modify-CursorJSFiles {
