@@ -2,6 +2,7 @@
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+
 # 颜色定义
 $RED = "`e[31m"
 $GREEN = "`e[32m"
@@ -12,6 +13,11 @@ $NC = "`e[0m"
 # 配置文件路径
 $STORAGE_FILE = "$env:APPDATA\Cursor\User\globalStorage\storage.json"
 $BACKUP_DIR = "$env:APPDATA\Cursor\User\globalStorage\backups"
+
+param(
+    [switch]$Auto = $false
+)
+if ($env:AUTO_RUN -eq "1") { $Auto = $true }
 
 # � 修改Cursor内核JS文件实现设备识别绕过（从macOS版本移植）
 function Modify-CursorJSFiles {
@@ -1192,27 +1198,26 @@ Write-Host "$YELLOW      • 这相当于当前的完整脚本行为$NC"
 Write-Host ""
 
 # 获取用户选择
-do {
-    $userChoice = Read-Host "请输入选择 (1 或 2)"
-    if ($userChoice -eq "1") {
-        Write-Host "$GREEN✅ [选择]$NC 您选择了：仅修改机器码"
-        $executeMode = "MODIFY_ONLY"
-        break
-    } elseif ($userChoice -eq "2") {
-        Write-Host "$GREEN✅ [选择]$NC 您选择了：重置环境+修改机器码"
-        Write-Host "$RED⚠️  [重要警告]$NC 此操作将删除所有Cursor配置文件！"
-        $confirmReset = Read-Host "确认执行完全重置？(输入 yes 确认，其他任意键取消)"
-        if ($confirmReset -eq "yes") {
-            $executeMode = "RESET_AND_MODIFY"
+if ($Auto) {
+    $userChoice = "1"
+    $executeMode = "MODIFY_ONLY"
+} else {
+    do {
+        $userChoice = Read-Host "请输入选择 (1 或 2)"
+        if ($userChoice -eq "1") {
+            $executeMode = "MODIFY_ONLY"
             break
-        } else {
-            Write-Host "$YELLOW👋 [取消]$NC 用户取消重置操作"
-            continue
+        } elseif ($userChoice -eq "2") {
+            $confirmReset = Read-Host "确认执行完全重置？(输入 yes 确认，其他任意键取消)"
+            if ($confirmReset -eq "yes") {
+                $executeMode = "RESET_AND_MODIFY"
+                break
+            } else {
+                continue
+            }
         }
-    } else {
-        Write-Host "$RED❌ [错误]$NC 无效选择，请输入 1 或 2"
-    }
-} while ($true)
+    } while ($true)
+}
 
 Write-Host ""
 
@@ -1254,10 +1259,15 @@ Write-Host ""
 
 # 🤔 用户确认
 Write-Host "$GREEN🤔 [确认]$NC 请确认您已了解上述执行流程"
-$confirmation = Read-Host "是否继续执行？(输入 y 或 yes 继续，其他任意键退出)"
+if ($Auto) {
+    $confirmation = "y"
+} else {
+    $confirmation = Read-Host "是否继续执行？(输入 y 或 yes 继续，其他任意键退出)"
+}
 if ($confirmation -notmatch "^(y|yes)$") {
-    Write-Host "$YELLOW👋 [退出]$NC 用户取消执行，脚本退出"
-    Read-Host "按回车键退出"
+    if (-not $Auto) {
+        Read-Host "按回车键退出"
+    }
     exit 0
 }
 Write-Host "$GREEN✅ [确认]$NC 用户确认继续执行"
@@ -1663,5 +1673,7 @@ Write-Host ""
 Write-Host "$GREEN🎉 [脚本完成]$NC 感谢使用 Cursor 机器码修改工具！"
 Write-Host "$BLUE💡 [提示]$NC 如有问题请参考公众号或重新运行脚本"
 Write-Host ""
-Read-Host "按回车键退出"
+if (-not $Auto) {
+    Read-Host "按回车键退出"
+}
 exit 0
